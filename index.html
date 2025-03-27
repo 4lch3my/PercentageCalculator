@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Percentage Calculator (Single File)</title>
+
+    <style>
+        /* --- CSS Rules Start --- */
+
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Dark Mode Theme */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1e1e1e; /* Dark background */
+            color: #e0e0e0; /* Light text */
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 20px auto;
+            background-color: #2a2a2a; /* Slightly lighter dark for container */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #bb86fc; /* A purple accent color often used in dark themes */
+            margin-bottom: 15px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+
+        .calculator-card {
+            background-color: #333333; /* Card background */
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+            border: 1px solid #444;
+        }
+
+        .calculator-card p {
+            margin-bottom: 15px;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            margin: 0 5px;
+            background-color: #444;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            border-radius: 4px;
+            width: 100px; /* Adjust as needed */
+            text-align: center;
+        }
+
+        /* Remove spinner arrows from number inputs (optional) */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type=number] {
+          -moz-appearance: textfield; /* Firefox */
+        }
+
+
+        button {
+            display: block;
+            background-color: #bb86fc; /* Accent color */
+            color: #1e1e1e; /* Dark text on button */
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #a86ef9; /* Slightly lighter purple on hover */
+        }
+
+        button:active {
+             background-color: #8e4cdc; /* Darker purple on click */
+        }
+
+        .result {
+            margin-top: 15px;
+            font-weight: bold;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 4px;
+            min-height: 40px; /* Ensure space even when empty */
+            color: #03dac6; /* Teal accent for result */
+        }
+
+        /* Basic responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            input[type="number"] {
+                width: 80px; /* Smaller inputs on small screens */
+            }
+        }
+        /* --- CSS Rules End --- */
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Percentage Calculator     </h1>
+
+        <div class="calculator-card">
+            <h2>1. Calculate Percentage of a Number</h2>
+            <p>What is
+                <input type="number" id="perc1" placeholder="%"> % of
+                <input type="number" id="num1" placeholder="number">?
+            </p>
+            <button id="calcBtn1">Calculate</button>
+            <p class="result" id="result1">Result: ---</p>
+        </div>
+
+        <div class="calculator-card">
+            <h2>2. Calculate X as a Percentage of Y</h2>
+            <p>
+                <input type="number" id="num2x" placeholder="number X"> is what percent of
+                <input type="number" id="num2y" placeholder="number Y">?
+            </p>
+            <button id="calcBtn2">Calculate</button>
+            <p class="result" id="result2">Result: --- %</p>
+        </div>
+
+        <div class="calculator-card">
+            <h2>3. Calculate the Base Number</h2>
+             <p>
+                <input type="number" id="num3x" placeholder="number X"> is
+                <input type="number" id="perc3" placeholder="%"> % of what number?
+            </p>
+            <button id="calcBtn3">Calculate</button>
+            <p class="result" id="result3">Result: ---</p>
+        </div>
+
+         <div class="calculator-card">
+            <h2>4. Percentage Increase / Decrease</h2>
+             <p>Calculate the percentage change from
+                <input type="number" id="num4start" placeholder="start value"> to
+                <input type="number" id="num4end" placeholder="end value">.
+            </p>
+            <button id="calcBtn4">Calculate</button>
+            <p class="result" id="result4">Result: --- %</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- JavaScript Code Start ---
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Helper Function for Input Validation ---
+            function getNumberValue(id) {
+                const element = document.getElementById(id);
+                if (!element) return NaN; // Element not found
+                const value = parseFloat(element.value);
+                // Consider empty string as NaN for validation purposes
+                return element.value.trim() === '' ? NaN : value;
+            }
+
+            // --- Helper Function to Display Results/Errors ---
+            function displayResult(elementId, value, unit = '') {
+                const element = document.getElementById(elementId);
+                if (!element) return;
+
+                if (isNaN(value) || !isFinite(value)) {
+                    element.textContent = 'Result: Invalid input or calculation error.';
+                    element.style.color = '#cf6679'; // Error color (Material Design dark error)
+                } else {
+                    // Round to a reasonable number of decimal places
+                    const roundedValue = Math.round(value * 10000) / 10000;
+                    element.textContent = `Result: ${roundedValue}${unit}`;
+                    element.style.color = '#03dac6'; // Result color
+                }
+            }
+
+
+            // --- Calculator 1: What is X% of Y? ---
+            const calcBtn1 = document.getElementById('calcBtn1');
+            if (calcBtn1) {
+                calcBtn1.addEventListener('click', () => {
+                    const perc = getNumberValue('perc1');
+                    const num = getNumberValue('num1');
+                    let result = NaN;
+
+                    if (!isNaN(perc) && !isNaN(num)) {
+                        result = (perc / 100) * num;
+                    }
+                    displayResult('result1', result);
+                });
+            }
+
+            // --- Calculator 2: X is what percent of Y? ---
+            const calcBtn2 = document.getElementById('calcBtn2');
+            if (calcBtn2) {
+                calcBtn2.addEventListener('click', () => {
+                    const numX = getNumberValue('num2x');
+                    const numY = getNumberValue('num2y');
+                    let result = NaN;
+
+                    if (!isNaN(numX) && !isNaN(numY) && numY !== 0) {
+                         result = (numX / numY) * 100;
+                    } else if (numY === 0) {
+                         // Handle division by zero specifically
+                         document.getElementById('result2').textContent = 'Result: Cannot divide by zero.';
+                         document.getElementById('result2').style.color = '#cf6679';
+                         return; // Stop further processing
+                    }
+                    displayResult('result2', result, ' %');
+                });
+            }
+
+            // --- Calculator 3: X is Y% of what? ---
+            const calcBtn3 = document.getElementById('calcBtn3');
+            if (calcBtn3) {
+                calcBtn3.addEventListener('click', () => {
+                    const numX = getNumberValue('num3x');
+                    const perc = getNumberValue('perc3');
+                    let result = NaN;
+
+                    if (!isNaN(numX) && !isNaN(perc) && perc !== 0) {
+                        result = (numX / perc) * 100;
+                    } else if (perc === 0) {
+                        document.getElementById('result3').textContent = 'Result: Cannot determine base if percentage is zero (unless X is also zero).';
+                        document.getElementById('result3').style.color = '#cf6679';
+                        return;
+                    }
+                     displayResult('result3', result);
+                });
+            }
+
+            // --- Calculator 4: Percentage Increase/Decrease ---
+            const calcBtn4 = document.getElementById('calcBtn4');
+             if (calcBtn4) {
+                calcBtn4.addEventListener('click', () => {
+                    const startVal = getNumberValue('num4start');
+                    const endVal = getNumberValue('num4end');
+                    let result = NaN;
+                    let changeType = '';
+
+                    if (!isNaN(startVal) && !isNaN(endVal)) {
+                        if (startVal === 0) {
+                            // Handle change from zero
+                            if (endVal > 0) result = Infinity; // Or treat as undefined/error
+                            else if (endVal < 0) result = -Infinity;
+                            else result = 0; // No change if both are zero
+                        } else {
+                            result = ((endVal - startVal) / Math.abs(startVal)) * 100; // Use absolute for correct % change denominator
+                        }
+
+                        if (result > 0) changeType = ' increase';
+                        else if (result < 0) changeType = ' decrease';
+                        else changeType = ''; // No change
+
+                    }
+
+                    if (startVal === 0 && endVal !== 0) {
+                         document.getElementById('result4').textContent = 'Result: Percentage change from zero is undefined or infinite.';
+                         document.getElementById('result4').style.color = '#cf6679';
+                    } else {
+                        displayResult('result4', result, ` %${changeType}`);
+                    }
+
+                });
+            }
+
+        }); // End of DOMContentLoaded listener
+        // --- JavaScript Code End ---
+    </script>
+
+</body>
+</html>
